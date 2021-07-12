@@ -1,2 +1,2 @@
-# passOnDemand
-A password manager
+# ZipNow
+file compression using LZ77 algoritm.
