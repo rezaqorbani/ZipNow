@@ -173,16 +173,15 @@ void buildMinHeap(struct MinHeap *minHeap)
 // A utility function to print an array of size n
 void insert_element(int arr[], int n, char **char_element)
 {
-    *char_element = (char *) malloc((n+1) * sizeof(char));
+    *char_element = (char *)malloc((n) * sizeof(char));
     int i;
-    // for (i = 0; i < n; ++i)
-    // {
-    //     char digit[] = {'0' + arr[i]};
-    //     strcpy(char_element + i, digit);
-    // }
-    strcpy(*char_element, "Hello!"); 
-    //*(char_element + n) = '\0';
+    for (i = 0; i < n; ++i)
+    {
+        char digit[] = {'0' + arr[i]};
+        strcpy(*char_element + i, digit);
+    }
 
+    if(n>0) *(*char_element + n) = '\0';
 }
 
 // Utility function to check if this node is leaf
@@ -258,7 +257,7 @@ struct MinHeapNode *buildHuffmanTree(char data[],
 // Prints huffman codes from the root of Huffman Tree.
 // It uses arr[] to store codes
 void insert_codes(struct MinHeapNode *root, int arr[],
-                  int top, char **dst)
+                  int top, char *dst[256])
 
 {
 
@@ -286,7 +285,7 @@ void insert_codes(struct MinHeapNode *root, int arr[],
     {
 
         int current_character_ascii = (int)root->data;
-        insert_element(arr, top, &(*dst + current_character_ascii) );
+        insert_element(arr, top, &dst[current_character_ascii]);
     }
 }
 
@@ -388,17 +387,25 @@ int calculate_frequencies(char *data, long int data_size, int *absolut_frequenci
 
     for (long int i = 0; i < data_size; i++)
     {
-        
+
         int ascii_value = (int)data[i];
-        int temp = absolut_frequencies[ascii_value]; 
+        int temp = absolut_frequencies[ascii_value];
         if (absolut_frequencies[ascii_value] == 0)
             number_of_unique_charaters++;
 
         absolut_frequencies[ascii_value]++;
-           
     }
-      
+
     return number_of_unique_charaters;
+}
+
+bool write_frequency(char* file_name, char * characters, int* frequncies, size_t number_of_characters)
+{
+    FILE *file_pointer = fopen(file_name, "w"); 
+    for(int i = 0; i < number_of_characters; i++)
+    {
+        fprintf("%c%d", characters + i, frequncies + i); 
+    }
 }
 
 bool write_zip(char *file_name)
@@ -407,8 +414,8 @@ bool write_zip(char *file_name)
     char *buffer = read_file(file_name, &file_size);
 
     int absolut_frequencies[256];
-    memset(absolut_frequencies, 0L, 256*sizeof(int));
-    
+    memset(absolut_frequencies, 0L, 256 * sizeof(int));
+
     int unique_characters = calculate_frequencies(buffer, file_size, absolut_frequencies);
 
     char *characters = (char *)malloc(unique_characters * sizeof(char));
@@ -420,28 +427,26 @@ bool write_zip(char *file_name)
         if (absolut_frequencies[i] != 0)
         {
             characters[j] = (char)i;
-            
+
             freqs[j] = absolut_frequencies[i];
 
             j++;
         }
-
     }
-    
+
     char *huffman_codes[256];
     for (int i = 0; i < 256; i++)
     {
-        huffman_codes[i] = "A";
+        huffman_codes[i] = "$";
     }
 
     HuffmanCodes(characters, freqs, unique_characters, huffman_codes);
-
+    int k = 1; 
     for (int i = 0; i < 256; i++)
     {
-        if (strcmp(huffman_codes[i], "A") != 0)
+        if (strcmp(huffman_codes[i], "$") != 0)
         {
-            printf("%c : %s", (char)i, huffman_codes[i]);
-            printf("\n");
+
         }
     }
 
