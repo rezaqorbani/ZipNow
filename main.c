@@ -446,8 +446,6 @@ bool write_zip(char *file_name)
 
     long int file_size = 0;
     char *buffer = read_file(file_name, &file_size);
-     
-    file_size = 13;
 
     int absolut_frequencies[256];
     memset(absolut_frequencies, 0L, 256 * sizeof(int));
