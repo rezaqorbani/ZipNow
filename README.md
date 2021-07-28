@@ -1,2 +1,2 @@
 # ZipNow
-file compression using LZ77 algoritm.
+A file compressor written in C using Huffman coding.
