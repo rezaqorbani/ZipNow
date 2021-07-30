@@ -65,7 +65,7 @@ static char *read_file(const char *filename, long int *file_sz)
     PERROR_IF(f == NULL, "fopen");
 
     buf_cap = 4096;
-    buf = (char*) xmalloc(buf_cap);
+    buf = (char *)xmalloc(buf_cap);
 
     *file_sz = 0;
     while (feof(f) == 0)
@@ -73,7 +73,7 @@ static char *read_file(const char *filename, long int *file_sz)
         if (buf_cap - *file_sz == 0)
         {
             buf_cap *= 2;
-            buf = (char*) xrealloc(buf, buf_cap);
+            buf = (char *)xrealloc(buf, buf_cap);
         }
 
         *file_sz += fread(&buf[*file_sz], sizeof(char), buf_cap - *file_sz, f);
@@ -94,59 +94,37 @@ static void write_file(const char *filename, const uint8_t *data, size_t n)
     PERROR_IF(fclose(f) != 0, "fclose");
 }
 
-char* read_zip_file(char* file_name, long int* file_size){
-    FILE *fp; 
-    char *buf;
-    long int buf_cap;
-
-
-    fp = fopen(file_name, "r"); 
-    PERROR_IF(fp == NULL, "fopen"); 
-
-    buf_cap = 4096;
-    buf = (char*) xmalloc(buf_cap);
-
-        *file_size = 0;
-        while (feof(fp) == 0)
-    {
-        if (buf_cap - *file_size == 0)
-        {
-            buf_cap *= 2;
-            buf = (char*) xrealloc(buf, buf_cap);
-        }
-
-        *file_size += fread(&buf[*file_size], sizeof(char), buf_cap - *file_size, fp);
-
-        PERROR_IF(ferror(fp), "fread");
-    }
-
-}
-
 // function iterates through the encoded string s
 // if s[i]=='1' then move to node->right
 // if s[i]=='0' then move to node->left
 // if leaf node append the node->data to our output string
-char* decode_file(struct MinHeapNode* root, char* s)
+char *decode_file(struct MinHeapNode *root, char *s)
 {
-    char *ans = "";
-    struct MinHeapNode* curr = root;
+    char *ans = malloc(20000 * sizeof(char));
+    strcpy(ans, "");
 
-    for (int i=0;i< strlen(s);i++)
+    struct MinHeapNode *curr = root;
+
+    for (int i = 0; i < strlen(s); i++)
     {
         if (s[i] == '0')
-           curr = curr->left;
+            curr = curr->left;
         else
-           curr = curr->right;
-  
+            curr = curr->right;
+
         // reached leaf node
-        if (curr->left==NULL && curr->right==NULL)
+        if (curr->left == NULL && curr->right == NULL)
         {
-            ans += curr->data;
+            //printf("%c\n", curr->data);
+            //printf("%c\n", curr->data);
+            strcat(ans, &(curr->data));
             curr = root;
         }
     }
-    // cout<<ans<<endl;
-    return ans+'\0';
+
+    strcat(ans, "\0");
+    printf("%s", ans); 
+    return ans;
 }
 
 #endif

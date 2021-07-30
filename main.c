@@ -3,27 +3,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "huffmancoding.h"
 #include "zipfile.h"
-
-char *get_file_name_no_extension(char *file_name)
-{
-
-    size_t file_name_length = 0;
-
-    for (; file_name_length <= strlen(file_name); file_name_length++)
-    {
-        if (file_name[file_name_length] == '.')
-        {
-            break;
-        }
-    }
-    char *no_extension = malloc(file_name_length * sizeof(char) + 1);
-    strncpy(no_extension, file_name, file_name_length);
-    strcat(no_extension, "\0");
-
-    return no_extension;
-}
 
 int calculate_frequencies(char *data, long int data_size, int *absolut_frequencies)
 {
@@ -43,7 +25,7 @@ int calculate_frequencies(char *data, long int data_size, int *absolut_frequenci
     return number_of_unique_charaters;
 }
 
-bool write_frequency(char *file_name, char *characters, int *frequncies, size_t number_of_characters)
+bool write_header(char *file_name, char *characters, int *frequncies, size_t number_of_characters)
 {
     FILE *file_pointer = fopen(file_name, "w");
     fprintf(file_pointer, "%d§", number_of_characters);
@@ -57,7 +39,7 @@ bool write_frequency(char *file_name, char *characters, int *frequncies, size_t 
 
 bool write_body(char *file_name_dst, char *data, uint32_t data_size, char *huffman_code_map[256])
 {
-    FILE *fp = fopen(file_name_dst, "a");
+    FILE *fp = fopen(file_name_dst, "w");
     for (uint32_t i = 0; i < data_size; i++)
     {
         int character = (int)data[i];
@@ -67,7 +49,7 @@ bool write_body(char *file_name_dst, char *data, uint32_t data_size, char *huffm
     return true;
 }
 
-bool huffman_compress(char *file_name)
+bool huffman_compress(char *zip_file_name, char* file_name)
 {
     long int file_size = 0;
     char *buffer = read_file(file_name, &file_size);
@@ -75,7 +57,7 @@ bool huffman_compress(char *file_name)
     int absolut_frequencies[256];
     memset(absolut_frequencies, 0L, 256 * sizeof(int));
 
-    int unique_characters = calculate_frequencies(buffer, file_size, absolut_frequencies);
+    size_t unique_characters = calculate_frequencies(buffer, file_size, absolut_frequencies);
 
     char *characters = (char *)malloc(unique_characters * sizeof(char));
     int *freqs = (int *)malloc(unique_characters * sizeof(int));
@@ -101,36 +83,74 @@ bool huffman_compress(char *file_name)
 
     HuffmanCodes(characters, freqs, unique_characters, huffman_codes);
 
-    char *without_extension = get_file_name_no_extension(file_name);
-    strcat(without_extension, ".zip");
+    //write_header(zip_file, characters, freqs, unique_characters);
 
-    write_frequency(without_extension, characters, freqs, unique_characters);
-
-    write_body(without_extension, buffer, file_size, huffman_codes);
+    write_body(zip_file_name, buffer, file_size, huffman_codes);
 
     free(characters);
     free(freqs);
-    //free(without_extension);
+
     return true;
 }
 
-bool huffman_extract (char *file_name)
+/*
+bool read_characters_frequency(FILE *fp, int *file_sz, char *characters, int *frequencies)
 {
-    FILE *fp = fopen(file_name, "r"); 
+    int buf_cap;
+    char *data;
 
+    buf_cap = 4096;
+    data = (char *)xmalloc(buf_cap);
 
+    char current_charcter;
+
+    //the first character must be a '§'
+
+    assert((current_charcter = fgetc(fp) )== '§');
+    current_charcter = fgetc(fp);
+    
+    while ((current_charcter = fgetc(fp)) != '§')
+    {
+        
+        *file_sz += fread(&data[*file_sz], sizeof(char), buf_cap - *file_sz, fp);
+        PERROR_IF(ferror(fp), "fread");
+    }
+
+}
+*/
+
+bool huffman_extract(char *zip_filename, char *filename)
+{
+    FILE *fp = fopen(zip_filename, "r"); 
+    
+    long int file_size = 0; 
+    char* data = read_file(zip_filename, &file_size); 
+
+    char* output = decode_file(root, data); 
+
+    fclose(fp);
+
+    FILE *new_file = fopen(filename, "w");
+    fprintf(new_file, "%s", output); 
+
+    fclose(new_file); 
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        printf("usage: zipnow filename\n");
+        printf("usage: zipnow <zipfile> filename\n");
         exit(EXIT_FAILURE);
     }
-    char *file_name = argv[1];
 
-    huffman_compress(file_name);
+    char *zip_file_name = argv[1];
+    char *file_name = argv[2]; 
+
+    huffman_compress(zip_file_name, file_name);
+
+    huffman_extract(zip_file_name, "testtest.txt");
+
 
     return 0;
 }

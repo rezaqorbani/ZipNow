@@ -57,6 +57,8 @@ struct MinHeapNode *newNode(char data, unsigned freq)
 
 // A utility function to create
 // a min heap of given capacity
+
+struct MinHeapNode *root;
 struct MinHeap *createMinHeap(unsigned capacity)
 
 {
@@ -290,7 +292,9 @@ void HuffmanCodes(char data[], int freq[], int size, char **dst)
 
 {
     // Construct Huffman Tree
-    struct MinHeapNode *root = buildHuffmanTree(data, freq, size);
+
+    //struct MinHeapNode *root = buildHuffmanTree(data, freq, size);
+    root = buildHuffmanTree(data, freq, size);
 
     // Print Huffman codes using
     // the Huffman tree built above
