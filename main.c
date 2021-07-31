@@ -7,6 +7,7 @@
 #include "huffmancoding.h"
 #include "zipfile.h"
 
+//calculate the frequencies of the characters in data, store it in absolut frequencies
 int calculate_frequencies(char *data, long int data_size, int *absolut_frequencies)
 {
     int number_of_unique_charaters = 0;
@@ -21,10 +22,10 @@ int calculate_frequencies(char *data, long int data_size, int *absolut_frequenci
 
         absolut_frequencies[ascii_value]++;
     }
-
     return number_of_unique_charaters;
 }
 
+//writes the header, which includes the characters and their frequency, to the zipfile
 bool write_header(char *file_name, char *characters, int *frequncies, size_t number_of_characters)
 {
     FILE *file_pointer = fopen(file_name, "w");
@@ -37,6 +38,7 @@ bool write_header(char *file_name, char *characters, int *frequncies, size_t num
     fclose(file_pointer);
 }
 
+//writes the compressed data to the zipfile
 bool write_body(char *file_name_dst, char *data, uint32_t data_size, char *huffman_code_map[256])
 {
     FILE *fp = fopen(file_name_dst, "w");
@@ -48,8 +50,8 @@ bool write_body(char *file_name_dst, char *data, uint32_t data_size, char *huffm
     fclose(fp);
     return true;
 }
-
-bool huffman_compress(char *zip_file_name, char* file_name)
+//compress a given file with file_name and writes the compressed data to zip_filename
+bool huffman_compress(char *zip_filename, char* file_name)
 {
     long int file_size = 0;
     char *buffer = read_file(file_name, &file_size);
@@ -85,7 +87,7 @@ bool huffman_compress(char *zip_file_name, char* file_name)
 
     //write_header(zip_file, characters, freqs, unique_characters);
 
-    write_body(zip_file_name, buffer, file_size, huffman_codes);
+    write_body(zip_filename, buffer, file_size, huffman_codes);
 
     free(characters);
     free(freqs);
@@ -94,7 +96,7 @@ bool huffman_compress(char *zip_file_name, char* file_name)
 }
 
 /*
-bool read_characters_frequency(FILE *fp, int *file_sz, char *characters, int *frequencies)
+bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies)
 {
     int buf_cap;
     char *data;
@@ -115,20 +117,19 @@ bool read_characters_frequency(FILE *fp, int *file_sz, char *characters, int *fr
         *file_sz += fread(&data[*file_sz], sizeof(char), buf_cap - *file_sz, fp);
         PERROR_IF(ferror(fp), "fread");
     }
-
 }
 */
-
+//extract data from zip_filename and write decompressed data to filename
 bool huffman_extract(char *zip_filename, char *filename)
 {
     FILE *fp = fopen(zip_filename, "r"); 
     
     long int file_size = 0; 
     char* data = read_file(zip_filename, &file_size); 
-
-    char* output = decode_file(root, data); 
-
     fclose(fp);
+
+    char* output = decode_file(root, data, file_size); 
+
 
     FILE *new_file = fopen(filename, "w");
     fprintf(new_file, "%s", output); 
@@ -138,18 +139,18 @@ bool huffman_extract(char *zip_filename, char *filename)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    if (argc != 4)
     {
         printf("usage: zipnow <zipfile> filename\n");
         exit(EXIT_FAILURE);
     }
 
-    char *zip_file_name = argv[1];
+    char *zip_filename = argv[1];
     char *file_name = argv[2]; 
 
-    huffman_compress(zip_file_name, file_name);
+    huffman_compress(zip_filename, file_name);
 
-    huffman_extract(zip_file_name, "testtest.txt");
+    huffman_extract(zip_filename, "testtest.txt");
 
 
     return 0;

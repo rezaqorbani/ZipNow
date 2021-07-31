@@ -18,29 +18,6 @@
         }                   \
     } while (0)
 
-size_t findSize(char *file_name)
-{
-    // opening the file in read mode
-    FILE *fp = fopen(file_name, "r");
-
-    // checking if the file exist or not
-    if (fp == NULL)
-    {
-        printf("File Not Found!\n");
-        return -1;
-    }
-
-    fseek(fp, 0L, SEEK_END);
-
-    // calculating the size of the file
-    size_t res = ftell(fp);
-
-    // closing the file
-    fclose(fp);
-
-    return res;
-}
-
 static void *xmalloc(size_t size)
 {
     void *ptr = malloc(size);
@@ -81,10 +58,11 @@ static char *read_file(const char *filename, long int *file_sz)
     }
 
     PERROR_IF(fclose(f) != 0, "fclose");
+    
     return buf;
 }
 
-static void write_file(const char *filename, const uint8_t *data, size_t n)
+static void write_file(const char *filename, const char *data, size_t n)
 {
     FILE *f;
 
@@ -98,14 +76,14 @@ static void write_file(const char *filename, const uint8_t *data, size_t n)
 // if s[i]=='1' then move to node->right
 // if s[i]=='0' then move to node->left
 // if leaf node append the node->data to our output string
-char *decode_file(struct MinHeapNode *root, char *s)
+char *decode_file(struct MinHeapNode *root, char *s, long int file_size)
 {
-    char *ans = malloc(20000 * sizeof(char));
+    char *ans = malloc(strlen(s) * sizeof(char));
     strcpy(ans, "");
 
     struct MinHeapNode *curr = root;
 
-    for (int i = 0; i < strlen(s); i++)
+    for (int i = 0; i < file_size; i++)
     {
         if (s[i] == '0')
             curr = curr->left;
@@ -115,15 +93,12 @@ char *decode_file(struct MinHeapNode *root, char *s)
         // reached leaf node
         if (curr->left == NULL && curr->right == NULL)
         {
-            //printf("%c\n", curr->data);
-            //printf("%c\n", curr->data);
-            strcat(ans, &(curr->data));
+            strncat(ans, &(curr->data), 1);
             curr = root;
         }
     }
 
     strcat(ans, "\0");
-    printf("%s", ans); 
     return ans;
 }
 
