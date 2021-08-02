@@ -94,8 +94,8 @@ bool huffman_compress(char *zip_filename, char* file_name)
 
     return true;
 }
+//write the header to the zipfile, the zip file contain
 
-/*
 bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies)
 {
     int buf_cap;
@@ -107,7 +107,6 @@ bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies)
     char current_charcter;
 
     //the first character must be a '§'
-
     assert((current_charcter = fgetc(fp) )== '§');
     current_charcter = fgetc(fp);
     
@@ -118,9 +117,9 @@ bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies)
         PERROR_IF(ferror(fp), "fread");
     }
 }
-*/
+
 //extract data from zip_filename and write decompressed data to filename
-bool huffman_extract(char *zip_filename, char *filename)
+void huffman_extract(char *zip_filename, char *filename)
 {
     FILE *fp = fopen(zip_filename, "r"); 
     
@@ -135,6 +134,8 @@ bool huffman_extract(char *zip_filename, char *filename)
     fprintf(new_file, "%s", output); 
 
     fclose(new_file); 
+    free(output); 
+    free(output); 
 }
 
 int main(int argc, char *argv[])
