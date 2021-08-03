@@ -18,6 +18,13 @@
         }                   \
     } while (0)
 
+//contains data of the written header
+struct header {
+    uint16_t number_of_characters;
+    uint8_t *characters; 
+    uint8_t *frequencies; 
+};
+
 static void *xmalloc(size_t size)
 {
     void *ptr = malloc(size);
@@ -78,7 +85,7 @@ static void write_file(const char *filename, const char *data, size_t n)
 // if leaf node append the node->data to our output string
 char *decode_file(struct MinHeapNode *root, char *s, long int file_size)
 {
-    char *ans = malloc(strlen(s) * sizeof(char));
+    char *ans = (char*) malloc(strlen(s) * sizeof(char));
     strcpy(ans, "");
 
     struct MinHeapNode *curr = root;
