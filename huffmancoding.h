@@ -306,14 +306,14 @@ void HuffmanCodes(char data[], int freq[], int size, char **dst)
 // if s[i]=='1' then move to node->right
 // if s[i]=='0' then move to node->left
 // if leaf node append the node->data to our output string
-uint8_t *decode_file(struct MinHeapNode *root, uint8_t *src, size_t s_size,  long int file_size)
+uint8_t *decode_file(struct MinHeapNode *root, uint8_t *src, size_t src_size)
 {
-    uint8_t *decoded = (uint8_t*) malloc(s_size * sizeof(uint8_t));
+    uint8_t *decoded = (uint8_t*) malloc(src_size * sizeof(uint8_t));
     
 
     struct MinHeapNode *curr = root;
 
-    for (int i = 0; i < file_size; i++)
+    for (int i = 0; i < src_size; i++)
     {
         if (src[i] == '0')
             curr = curr->left;
