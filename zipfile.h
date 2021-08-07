@@ -39,17 +39,17 @@ static void *xrealloc(void *ptr, size_t size)
     return ptr;
 }
 
-static char *read_file(const char *filename, long int *file_sz)
+static uint8_t *read_file(const char *filename, long int *file_sz)
 {
     FILE *f;
-    char *buf;
+    uint8_t *buf;
     long int buf_cap;
 
     f = fopen(filename, "r");
     PERROR_IF(f == NULL, "fopen");
 
     buf_cap = 4096;
-    buf = (char *)xmalloc(buf_cap);
+    buf = (uint8_t *)xmalloc(buf_cap);
 
     *file_sz = 0;
     while (feof(f) == 0)
@@ -57,10 +57,10 @@ static char *read_file(const char *filename, long int *file_sz)
         if (buf_cap - *file_sz == 0)
         {
             buf_cap *= 2;
-            buf = (char *)xrealloc(buf, buf_cap);
+            buf = (uint8_t *)xrealloc(buf, buf_cap);
         }
 
-        *file_sz += fread(&buf[*file_sz], sizeof(char), buf_cap - *file_sz, f);
+        *file_sz += fread(&buf[*file_sz], sizeof(uint8_t), buf_cap - *file_sz, f);
         PERROR_IF(ferror(f), "fread");
     }
 
@@ -69,7 +69,7 @@ static char *read_file(const char *filename, long int *file_sz)
     return buf;
 }
 
-static void write_file(const char *filename, const char *data, size_t n)
+static void write_file(const char *filename, const uint8_t *data, size_t n)
 {
     FILE *f;
 
@@ -77,36 +77,6 @@ static void write_file(const char *filename, const char *data, size_t n)
     PERROR_IF(f == NULL, "fopen");
     PERROR_IF(fwrite(data, 1, n, f) != n, "fwrite");
     PERROR_IF(fclose(f) != 0, "fclose");
-}
-
-// function iterates through the encoded string s
-// if s[i]=='1' then move to node->right
-// if s[i]=='0' then move to node->left
-// if leaf node append the node->data to our output string
-char *decode_file(struct MinHeapNode *root, char *s, long int file_size)
-{
-    char *ans = (char*) malloc(strlen(s) * sizeof(char));
-    strcpy(ans, "");
-
-    struct MinHeapNode *curr = root;
-
-    for (int i = 0; i < file_size; i++)
-    {
-        if (s[i] == '0')
-            curr = curr->left;
-        else
-            curr = curr->right;
-
-        // reached leaf node
-        if (curr->left == NULL && curr->right == NULL)
-        {
-            strncat(ans, &(curr->data), 1);
-            curr = root;
-        }
-    }
-
-    strcat(ans, "\0");
-    return ans;
 }
 
 #endif

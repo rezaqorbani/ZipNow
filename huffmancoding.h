@@ -11,6 +11,8 @@
 // calculating height of Huffman Tree
 #define MAX_TREE_HT 100
 
+struct MinHeapNode *root;
+
 // A Huffman tree node
 struct MinHeapNode
 {
@@ -57,12 +59,8 @@ struct MinHeapNode *newNode(char data, unsigned freq)
 
 // A utility function to create
 // a min heap of given capacity
-
-struct MinHeapNode *root;
 struct MinHeap *createMinHeap(unsigned capacity)
-
 {
-
     struct MinHeap *minHeap = (struct MinHeap *)malloc(sizeof(struct MinHeap));
 
     // current size is 0
@@ -301,6 +299,36 @@ void HuffmanCodes(char data[], int freq[], int size, char **dst)
     int arr[MAX_TREE_HT], top = 0;
 
     insert_codes(root, arr, top, dst);
+}
+
+
+// function iterates through the encoded string s
+// if s[i]=='1' then move to node->right
+// if s[i]=='0' then move to node->left
+// if leaf node append the node->data to our output string
+uint8_t *decode_file(struct MinHeapNode *root, uint8_t *src, size_t s_size,  long int file_size)
+{
+    uint8_t *decoded = (uint8_t*) malloc(s_size * sizeof(uint8_t));
+    
+
+    struct MinHeapNode *curr = root;
+
+    for (int i = 0; i < file_size; i++)
+    {
+        if (src[i] == '0')
+            curr = curr->left;
+        else
+            curr = curr->right;
+
+        // reached leaf node
+        if (curr->left == NULL && curr->right == NULL)
+        {
+            memcpy(decoded, &(curr->data), sizeof(uint8_t));
+            curr = root;
+        }
+    }
+
+    return decoded;
 }
 
 #endif

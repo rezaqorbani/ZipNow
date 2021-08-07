@@ -14,7 +14,6 @@ int calculate_frequencies(char *data, long int data_size, int *absolut_frequenci
 
     for (long int i = 0; i < data_size; i++)
     {
-
         int ascii_value = (int)data[i];
         int temp = absolut_frequencies[ascii_value];
         if (absolut_frequencies[ascii_value] == 0)
@@ -50,8 +49,9 @@ bool write_body(char *file_name_dst, char *data, uint32_t data_size, char *huffm
     fclose(fp);
     return true;
 }
+
 //compress a given file with file_name and writes the compressed data to zip_filename
-bool huffman_compress(char *zip_filename, char* file_name)
+void huffman_compress(char *zip_filename, char* file_name)
 {
     long int file_size = 0;
     char *buffer = read_file(file_name, &file_size);
@@ -92,9 +92,7 @@ bool huffman_compress(char *zip_filename, char* file_name)
     free(characters);
     free(freqs);
 
-    return true;
 }
-//write the header to the zipfile, the zip file contain
 
 bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies)
 {
