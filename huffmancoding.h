@@ -301,12 +301,28 @@ void HuffmanCodes(char data[], int freq[], int size, char **dst)
     insert_codes(root, arr, top, dst);
 }
 
+//calculate the frequencies of the characters in data, store it in absolut frequencies
+int calculate_frequencies(uint8_t *data, long int data_size, int *absolut_frequencies)
+{
+    int number_of_unique_charaters = 0;
+
+    for (long int i = 0; i < data_size; i++)
+    {
+        uint8_t ascii_value = data[i];
+        int temp = absolut_frequencies[ascii_value];
+        if (absolut_frequencies[ascii_value] == 0)
+            number_of_unique_charaters++;
+
+        absolut_frequencies[ascii_value]++;
+    }
+    return number_of_unique_charaters;
+}
 
 // function iterates through the encoded string s
 // if s[i]=='1' then move to node->right
 // if s[i]=='0' then move to node->left
 // if leaf node append the node->data to our output string
-uint8_t *decode_file(struct MinHeapNode *root, uint8_t *src, size_t src_size)
+uint8_t *huffman_decoding(struct MinHeapNode *root, uint8_t *src, size_t src_size)
 {
     uint8_t *decoded = (uint8_t*) malloc(src_size * sizeof(uint8_t));
     
