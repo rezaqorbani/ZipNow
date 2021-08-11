@@ -21,24 +21,25 @@ bool write_header(char *file_name, char *characters, int *frequncies, size_t num
 }
 
 //writes the compressed data to the zipfile
-bool write_body(char *file_name_dst, uint8_t *data, uint32_t data_size, char *huffman_code_map[256])
+bool write_body(char *file_name_dst, char *data, size_t data_size, char *huffman_code_map[256])
 {
-    FILE *fp = fopen(file_name_dst, "w");
-    for (uint32_t i = 0; i < data_size; i++)
+    FILE *fp = fopen(file_name_dst, "wb");
+    for (size_t i = 0; i < data_size; i++)
     {
-        int character = data[i];
-        memcpy(fp, data, 1); 
+        uint8_t character = data[i];
+ 
+        uint8_t* huffman_code = huffman_code_map[character];
+        fwrite(&huffman_code, sizeof(uint8_t), strlen(huffman_code), fp);
     }
     fclose(fp);
     return true;
 }
 
 //compress a given file with file_name and writes the compressed data to zip_filename
-void huffman_compress(char *zip_filename, char* file_name)
+void huffman_compress(char *zip_filename, char *file_name)
 {
-    long int file_size = 0;
-    uint8_t *buffer = read_file(file_name, &file_size);
-
+    size_t file_size = 0;
+    char *buffer = read_file(file_name, &file_size);
     int absolut_frequencies[256];
     memset(absolut_frequencies, 0L, 256 * sizeof(int));
 
@@ -63,7 +64,7 @@ void huffman_compress(char *zip_filename, char* file_name)
     char *huffman_codes[256];
     for (int i = 0; i < 256; i++)
     {
-        huffman_codes[i] = "$";
+        huffman_codes[i] = NULL;
     }
 
     HuffmanCodes(characters, freqs, unique_characters, huffman_codes);
@@ -76,30 +77,27 @@ void huffman_compress(char *zip_filename, char* file_name)
     free(freqs);
 }
 
-
-bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies); 
+bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies);
 
 bool read_body(FILE *fp, int *file_sz);
-
 
 //extract data from zip_filename and write decompressed data to filename
 void huffman_extract(char *zip_filename, char *filename)
 {
-    FILE *fp = fopen(zip_filename, "r"); 
-    
-    long int file_size = 0; 
-    char* data = read_file(zip_filename, &file_size); 
+    FILE *fp = fopen(zip_filename, "r");
+
+    size_t file_size = 0;
+    char *data = read_file(zip_filename, &file_size);
     fclose(fp);
 
-    uint8_t* output = huffman_decoding(root, data, file_size); 
-
+    uint8_t *output = huffman_decoding(root, data, file_size);
 
     FILE *new_file = fopen(filename, "w");
-    fprintf(new_file, "%s", output); 
+    fprintf(new_file, "%s", output);
 
-    fclose(new_file); 
-    free(output); 
-    free(output); 
+    fclose(new_file);
+    free(output);
+    free(output);
 }
 
 int main(int argc, char *argv[])
@@ -111,12 +109,11 @@ int main(int argc, char *argv[])
     }
 
     char *zip_filename = argv[1];
-    char *file_name = argv[2]; 
+    char *file_name = argv[2];
 
     huffman_compress(zip_filename, file_name);
 
     //huffman_extract(zip_filename, "testtest.txt");
-
 
     return 0;
 }

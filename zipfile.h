@@ -19,10 +19,11 @@
     } while (0)
 
 //contains data of the written header
-struct header {
+struct header
+{
     uint16_t number_of_characters;
-    uint8_t *characters; 
-    uint8_t *frequencies; 
+    uint8_t *characters;
+    uint8_t *frequencies;
 };
 
 static void *xmalloc(size_t size)
@@ -39,17 +40,17 @@ static void *xrealloc(void *ptr, size_t size)
     return ptr;
 }
 
-static uint8_t *read_file(const char *filename, long int *file_sz)
+static uint8_t *read_file(const char *filename, size_t *file_sz)
 {
     FILE *f;
-    uint8_t *buf;
-    long int buf_cap;
+    char *buf;
+    size_t buf_cap;
 
     f = fopen(filename, "r");
     PERROR_IF(f == NULL, "fopen");
 
     buf_cap = 4096;
-    buf = (uint8_t *)xmalloc(buf_cap);
+    buf = (char *)xmalloc(buf_cap);
 
     *file_sz = 0;
     while (feof(f) == 0)
@@ -57,15 +58,15 @@ static uint8_t *read_file(const char *filename, long int *file_sz)
         if (buf_cap - *file_sz == 0)
         {
             buf_cap *= 2;
-            buf = (uint8_t *)xrealloc(buf, buf_cap);
+            buf = (char *)xrealloc(buf, buf_cap);
         }
 
-        *file_sz += fread(&buf[*file_sz], sizeof(uint8_t), buf_cap - *file_sz, f);
+        *file_sz += fread(&buf[*file_sz], sizeof(char), buf_cap - *file_sz, f);
         PERROR_IF(ferror(f), "fread");
     }
 
     PERROR_IF(fclose(f) != 0, "fclose");
-    
+
     return buf;
 }
 

@@ -164,18 +164,18 @@ void buildMinHeap(struct MinHeap *minHeap)
 }
 
 // A utility function to print an array of size n
-void insert_element(int arr[], int n, char **char_element)
+void insert_element(int arr[], int n, char **dst)
 {
-    *char_element = (char *)malloc((n) * sizeof(char));
+    *dst = (char *)malloc((n) * sizeof(char));
     int i;
     for (i = 0; i < n; ++i)
     {
         char digit[] = {'0' + arr[i]};
-        strcpy(*char_element + i, digit);
+        strcpy(*dst + i, digit);
     }
 
     if (n > 0)
-        *(*char_element + n) = '\0';
+        *(*dst + n) = '\0';
 }
 
 // Utility function to check if this node is leaf
