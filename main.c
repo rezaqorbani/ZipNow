@@ -7,6 +7,25 @@
 #include "huffmancoding.h"
 #include "zipfile.h"
 
+//Writes the compressed data represented by a binary string as bits to bytes
+bool write_binary(FILE *fp, char* data, uint64_t* bytes_written)
+{
+    uint64_t number_of_bytes = ceil(strlen(data)/8.0);
+    uint8_t *bytes = (uint8_t *) malloc( number_of_bytes * sizeof(uint8_t));
+    memset(bytes, 0, number_of_bytes);
+    
+    uint64_t j = 0; 
+    for(int i = 0; i < strlen(data); i++)
+    {
+        if(i%8 == 0 && i != 0) j++; 
+        if(data[i] == '1')
+        {
+            bytes[j] = bytes[j] | 1U << i%8; 
+
+        }
+    }
+    return true;
+}
 //writes the header, which includes the characters and their frequency, to the zipfile
 bool write_header(char *file_name, char *characters, int *frequncies, size_t number_of_characters)
 {
@@ -21,14 +40,15 @@ bool write_header(char *file_name, char *characters, int *frequncies, size_t num
 }
 
 //writes the compressed data to the zipfile
-bool write_body(char *file_name_dst, char *data, size_t data_size, char *huffman_code_map[256])
+bool write_body(char *file_name_dst, char *data, size_t data_size, char *huffman_code_map[256], size_t *written_bits)
 {
     FILE *fp = fopen(file_name_dst, "wb");
     for (size_t i = 0; i < data_size; i++)
     {
-        uint8_t character = data[i];
+        uint8_t character = (uint8_t) data[i];
  
-        uint8_t* huffman_code = huffman_code_map[character];
+        char* huffman_code = huffman_code_map[character];
+        
         fwrite(&huffman_code, sizeof(uint8_t), strlen(huffman_code), fp);
     }
     fclose(fp);
