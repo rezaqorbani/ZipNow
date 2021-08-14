@@ -55,7 +55,8 @@ bool create_body(char *data, size_t data_size, char *huffman_code_map[256],
     size_t buf_cap;
     buf_cap = 4096;
     output = (char *)xmalloc(buf_cap);
-
+    
+    printf("%d\n", data_size); 
     for (size_t i = 0; i < data_size; i++)
     {
         if (buf_cap - *bytes_written < 0)
@@ -67,6 +68,7 @@ bool create_body(char *data, size_t data_size, char *huffman_code_map[256],
         char *huffman_code = huffman_code_map[character];
         strcat(output, huffman_code);
         *bytes_written += strlen(huffman_code);
+        
     }
     return true;
 }
@@ -104,8 +106,6 @@ void huffman_compress(char *zip_filename, char *file_name)
     char *binary_string;
     size_t bytes_written = 0;
     create_body(buffer, file_size, huffman_codes, &bytes_written, binary_string);
-    printf("got here \n");
-
     write_binary(zip_filename, binary_string, &bytes_written);
 
     free(characters);
@@ -145,7 +145,6 @@ int main(int argc, char *argv[])
 
     char *zip_filename = argv[1];
     char *file_name = argv[2];
-
     huffman_compress(zip_filename, file_name);
 
     //huffman_extract(zip_filename, "testtest.txt");
