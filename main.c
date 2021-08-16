@@ -9,28 +9,25 @@
 #include "zipfile.h"
 
 //Writes the compressed data represented by a binary string as bits to bytes
-bool write_binary(char *file_name_dst, char *data, size_t *bytes_written)
+bool write_binary(char *file_name_dst, char *data, size_t *data_size, size_t *bits_written)
 {
     FILE *fp = fopen(file_name_dst, "wb");
-    size_t number_of_bytes = ceil(strlen(data) / 8.0);
-    uint8_t *bytes = (uint8_t *)malloc(number_of_bytes * sizeof(uint8_t));
-    memset(bytes, 0, number_of_bytes);
+    uint8_t *bytes = (uint8_t *)malloc(*data_size * sizeof(uint8_t));
+    memset(bytes, 0, *data_size);
 
     size_t j = 0;
-    for (size_t i = 0; i < strlen(data); i++)
+    for (size_t i = 0; i < *data_size; i++)
     {
         if (i % 8 == 0 && i != 0)
             j++;
         if (data[i] == '1')
         {
-            bytes[j] = bytes[j] | 1U << i % 8;
+            bytes[j] = bytes[j] | 1U << (i % 8);
         }
     }
-
-    *bytes_written = fwrite(bytes, sizeof(size_t), j, fp);
-
-    assert(*bytes_written == j);
-
+    printf("j = %d\n", j); 
+    *bits_written = fwrite(bytes, sizeof(uint8_t), j, fp);
+    assert(*bits_written == j);
     return true;
 }
 
@@ -48,20 +45,19 @@ bool write_header(char *file_name, char *characters, int *frequncies, size_t num
 }
 
 //writes the compressed data to the zipfile
-char * create_body(char *data, size_t data_size, char *huffman_code_map[256],
-                 size_t *bytes_written)
+char *create_body(char *data, size_t data_size, char *huffman_code_map[256],
+                  size_t *bytes_written)
 {
     size_t buf_cap;
     buf_cap = 4096;
     char *output = (char *)xmalloc(buf_cap);
-    
     for (size_t i = 0; i < data_size; i++)
     {
         uint8_t character = (uint8_t)data[i];
         char *huffman_code = huffman_code_map[character];
-        for(size_t j = 0; j < strlen(huffman_code); j++)
+        for (size_t j = 0; j < strlen(huffman_code); j++)
         {
-            if (buf_cap - *bytes_written == 0)
+            if (buf_cap - *bytes_written <= 0)
             {
                 buf_cap *= 2;
                 output = (char *)xrealloc(output, buf_cap);
@@ -70,7 +66,6 @@ char * create_body(char *data, size_t data_size, char *huffman_code_map[256],
             (*bytes_written)++;
         }
     }
-    strcat(output, '\0'); 
     return output;
 }
 
@@ -103,11 +98,12 @@ void huffman_compress(char *zip_filename, char *file_name)
     HuffmanCodes(characters, freqs, unique_characters, huffman_codes);
 
     //write_header(zip_file, characters, freqs, unique_characters);
-    
-    size_t bytes_written = 0;
-    char *binary_string = create_body(buffer, file_size, huffman_codes, &bytes_written);
-    printf("%s\n", binary_string);
-    write_binary(zip_filename, binary_string, &bytes_written);
+
+    size_t data_size = 0;
+    char *binary_string = create_body(buffer, file_size, huffman_codes, &data_size);
+    size_t bits_written; 
+    write_binary(zip_filename, binary_string, &data_size, &bits_written);
+    printf("%d", bits_written); 
 
     free(binary_string);
     free(characters);
