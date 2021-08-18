@@ -9,9 +9,9 @@
 #include "zipfile.h"
 
 //Writes the compressed data represented by a binary string as bits to bytes
-bool write_binary(char *file_name_dst, char *data, size_t *data_size, size_t *bytes_written)
+bool write_bits(char *file_name, char *data, size_t *data_size, size_t *bytes_written)
 {
-    FILE *fp = fopen(file_name_dst, "wb");
+    FILE *fp = fopen(file_name, "wb");
     uint8_t *bytes = (uint8_t *)xmalloc(*data_size * sizeof(uint8_t));
     memset(bytes, 0, *data_size);
 
@@ -44,12 +44,17 @@ bool write_header(char *file_name, char *characters, int *frequncies, size_t num
 }
 
 //writes the compressed data to the zipfile
-char *create_body(char *data, size_t data_size, char *huffman_code_map[256],
-                  size_t *bits_written)
+static char *create_body(char *data, size_t data_size, char *huffman_code_map[256],
+                         size_t *bits_written)
 {
-    size_t buf_cap = 444096;
-    char *output = (char *)xmalloc(buf_cap);
-    output[0] = '\0';
+    size_t buf_cap;
+    char *output;
+
+    buf_cap = 4096;
+    output = xmalloc(buf_cap);
+    output[0] = '\0'; //make output null-terminated
+
+    *bits_written = 0; 
     for (size_t i = 0; i < data_size; i++)
     {
         uint8_t character = (uint8_t)data[i];
@@ -59,7 +64,7 @@ char *create_body(char *data, size_t data_size, char *huffman_code_map[256],
             if (buf_cap - *bits_written <= 0)
             {
                 buf_cap *= 2;
-                output = (char *)xrealloc(output, buf_cap);
+                output = xrealloc(output, buf_cap);
             }
             strncat(output, &huffman_code[j], 1);
             (*bits_written)++;
@@ -99,7 +104,7 @@ void huffman_compress(char *zip_filename, char *file_name)
     size_t data_size = 0;
     char *binary_string = create_body(buffer, file_size, huffman_codes, &data_size);
     size_t bits_written;
-    write_binary(zip_filename, binary_string, &data_size, &bits_written);
+    write_bits(zip_filename, binary_string, &data_size, &bits_written);
 
     free(binary_string);
     free(characters);

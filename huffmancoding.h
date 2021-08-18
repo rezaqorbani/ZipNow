@@ -302,14 +302,13 @@ void HuffmanCodes(char data[], int freq[], int size, char **dst)
 }
 
 //calculate the frequencies of the characters in data, store it in absolut frequencies
-int calculate_frequencies(uint8_t *data, long int data_size, int *absolut_frequencies)
+int calculate_frequencies(char *data, long int data_size, int *absolut_frequencies)
 {
     int number_of_unique_charaters = 0;
 
     for (long int i = 0; i < data_size; i++)
     {
         uint8_t ascii_value = data[i];
-        int temp = absolut_frequencies[ascii_value];
         if (absolut_frequencies[ascii_value] == 0)
             number_of_unique_charaters++;
 
