@@ -34,7 +34,7 @@ bool write_bits(char *file_name, char *data, size_t *data_size, size_t *bytes_wr
 bool write_header(char *file_name, char *characters, int *frequncies, size_t number_of_characters)
 {
     FILE *file_pointer = fopen(file_name, "w");
-    fprintf(file_pointer, "%d§", number_of_characters);
+    fprintf(file_pointer, "%I64d§", number_of_characters);
     for (int i = 0; i < number_of_characters; i++)
     {
         fprintf(file_pointer, "%c%d", characters[i], frequncies[i]);
@@ -54,7 +54,7 @@ static char *create_body(char *data, size_t data_size, char *huffman_code_map[25
     output = xmalloc(buf_cap);
     output[0] = '\0'; //make output null-terminated
 
-    *bits_written = 0; 
+    *bits_written = 0;
     for (size_t i = 0; i < data_size; i++)
     {
         uint8_t character = (uint8_t)data[i];
@@ -73,6 +73,8 @@ static char *create_body(char *data, size_t data_size, char *huffman_code_map[25
     return output;
 }
 
+size_t bytes_written = 0; // temporary fix, this has be written into the zip file
+size_t bits_written = 0;
 //compress a given file with file_name and writes the compressed data to zip_filename
 void huffman_compress(char *zip_filename, char *file_name)
 {
@@ -101,10 +103,9 @@ void huffman_compress(char *zip_filename, char *file_name)
 
     //write_header(zip_file, characters, freqs, unique_characters);
 
-    size_t data_size = 0;
-    char *binary_string = create_body(buffer, file_size, huffman_codes, &data_size);
-    size_t bits_written;
-    write_bits(zip_filename, binary_string, &data_size, &bits_written);
+    char *binary_string = create_body(buffer, file_size, huffman_codes, &bits_written);
+
+    write_bits(zip_filename, binary_string, &bits_written, &bytes_written);
 
     free(binary_string);
     free(characters);
@@ -113,24 +114,42 @@ void huffman_compress(char *zip_filename, char *file_name)
 
 bool read_header(FILE *fp, int *file_sz, char *characters, int *frequencies);
 
-bool read_body(FILE *fp, int *file_sz);
+char *read_body(uint8_t *data, const size_t bits, const size_t bytes)
+{
+    char *compressed_data = (char *)xmalloc(bits * sizeof(char) + 1);
+    memset(compressed_data, 0, bits);
+    compressed_data[0] = '\0';
+
+    size_t j = 0;
+    for (size_t i = 0; i < bits; i++)
+    {
+        if (i % 8 == 0 && i != 0)
+            j++;
+
+        uint8_t bit_value = compressed_data[j] & 1U << (i % 8);
+        if (bit_value == 0)
+            strcat(compressed_data, "0");
+        else
+            strcat(compressed_data, "1");
+    }
+    strcat(compressed_data, "\0");
+    return compressed_data;
+}
 
 //extract data from zip_filename and write decompressed data to filename
 void huffman_extract(char *zip_filename, char *filename)
 {
-    FILE *fp = fopen(zip_filename, "r");
-
     size_t file_size = 0;
-    char *data = read_file(zip_filename, &file_size);
-    fclose(fp);
+    uint8_t *data = (uint8_t *)read_file(zip_filename, &file_size); //temporary fix -- readfile() needs to return uint8_t everywhere
+    char *body_bits = read_body(data, bits_written, bytes_written);
 
-    uint8_t *output = huffman_decoding(root, data, file_size);
+    char *output = huffman_decoding(root, body_bits, file_size);
 
     FILE *new_file = fopen(filename, "w");
     fprintf(new_file, "%s", output);
-
     fclose(new_file);
-    free(output);
+
+    free(body_bits);
     free(output);
 }
 
@@ -146,7 +165,9 @@ int main(int argc, char *argv[])
     char *file_name = argv[2];
     huffman_compress(zip_filename, file_name);
 
-    //huffman_extract(zip_filename, "testtest.txt");
+    huffman_extract(zip_filename, "testtest.txt");
+
+    printf("end of program\n");
 
     return 0;
 }

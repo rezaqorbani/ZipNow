@@ -321,10 +321,9 @@ int calculate_frequencies(char *data, long int data_size, int *absolut_frequenci
 // if s[i]=='1' then move to node->right
 // if s[i]=='0' then move to node->left
 // if leaf node append the node->data to our output string
-uint8_t *huffman_decoding(struct MinHeapNode *root, uint8_t *src, size_t src_size)
+char *huffman_decoding(struct MinHeapNode *root, char *src, size_t src_size)
 {
-    uint8_t *decoded = (uint8_t*) malloc(src_size * sizeof(uint8_t));
-    
+    char *decoded = (char *)malloc(src_size * sizeof(char));
 
     struct MinHeapNode *curr = root;
 
@@ -338,7 +337,7 @@ uint8_t *huffman_decoding(struct MinHeapNode *root, uint8_t *src, size_t src_siz
         // reached leaf node
         if (curr->left == NULL && curr->right == NULL)
         {
-            memcpy(decoded, &(curr->data), sizeof(uint8_t));
+            memcpy(decoded, &(curr->data), sizeof(char));
             curr = root;
         }
     }
